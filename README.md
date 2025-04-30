@@ -4,7 +4,16 @@ This is a collection of utilities that come in handy in almost any Unity Project
 
 ## Installation
 
-First, make sure you installed excellent [Git Dependency Resolver](https://github.com/mob-sakai/GitDependencyResolverForUnity), as this package uses Git dependencies (UniTask and Extenject). Then, add this package via Package Manager/Install package from git URL with this argument:
+### Dependencies
+
+You must install both:
+
+- [Git Dependency Resolver](https://github.com/mob-sakai/GitDependencyResolverForUnity)
+- Addresables (com.unity.addressables - Unity Registry)
+
+### Package Manager
+
+Add this package via Package Manager/Install package from git URL with this argument:
 
 ```sh
 https://github.com/lmProgramming/lm-pro-package.git
