@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "displayName": "LMProgramming Utilites",
   "description": "Contains useful utilites reused in many of my games",
-  "unity": "6000.0.41f1",
+  "unity": "6000.0",
   "author": {
     "name": "Mikołaj Kubś",
     "email": "mikolajkubs03@gmail.com",
