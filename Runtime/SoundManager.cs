@@ -5,16 +5,11 @@ using UnityEngine;
 
 namespace LM
 {
-    public enum SoundIdentifier
-    {
-        Explosion
-    }
-
     public class SoundManager : MonoBehaviour
     {
         public Sound[] sounds;
 
-        [Header("Pooling Settings")] [SerializeField]
+        [Header("Pooling Settings")]
         private GameObject audioSourcePrefab;
 
         [SerializeField] private Transform audioSourceParent;
@@ -29,13 +24,14 @@ namespace LM
         private float _masterVolume = 1f;
         private float _musicVolume = 1f;
 
-        private Dictionary<SoundIdentifier, Sound> _soundsDictionary;
-
-
+        private Dictionary<string, Sound> _soundsDictionary;
+        
         private void Awake()
         {
             // Consider singleton pattern alternatives or DI if needed across scenes
             // DontDestroyOnLoad(gameObject);
+            
+            audioSourcePrefab = Resources.Load<GameObject>("AudioSource");
 
             if (audioSourcePrefab == null)
             {
@@ -51,7 +47,7 @@ namespace LM
                 return;
             }
 
-            _soundsDictionary = new Dictionary<SoundIdentifier, Sound>();
+            _soundsDictionary = new Dictionary<string, Sound>();
 
             try
             {
@@ -108,7 +104,7 @@ namespace LM
 
         #region Playback Methods
 
-        public void Play(SoundIdentifier identifier, Vector3? position = null)
+        public void Play(string identifier, Vector3? position = null)
         {
             if (!_soundsDictionary.TryGetValue(identifier, out var sound))
             {
@@ -185,7 +181,7 @@ namespace LM
 
         // Stop, Pause, UnPause primarily work reliably for non-overlapping sounds.
 
-        public void Stop(SoundIdentifier identifier)
+        public void Stop(string identifier)
         {
             if (_soundsDictionary.TryGetValue(identifier, out var sound) && !sound.allowOverlap &&
                 sound.dedicatedSource != null)
@@ -195,7 +191,7 @@ namespace LM
                     $"Stop() called on overlapping sound '{identifier}'. Only stops dedicated source, not pooled instances.");
         }
 
-        public void Pause(SoundIdentifier identifier)
+        public void Pause(string identifier)
         {
             if (_soundsDictionary.TryGetValue(identifier, out var sound) && !sound.allowOverlap &&
                 sound.dedicatedSource != null)
@@ -205,7 +201,7 @@ namespace LM
                     $"Pause() called on overlapping sound '{identifier}'. Not supported for pooled instances.");
         }
 
-        public void UnPause(SoundIdentifier identifier)
+        public void UnPause(string identifier)
         {
             if (_soundsDictionary.TryGetValue(identifier, out var sound) && !sound.allowOverlap &&
                 sound.dedicatedSource != null)
@@ -215,7 +211,7 @@ namespace LM
                     $"UnPause() called on overlapping sound '{identifier}'. Not supported for pooled instances.");
         }
 
-        public bool IsPlaying(SoundIdentifier identifier)
+        public bool IsPlaying(string identifier)
         {
             if (!_soundsDictionary.TryGetValue(identifier, out var sound)) return false;
 
@@ -282,7 +278,7 @@ namespace LM
             Music
         }
 
-        public SoundIdentifier identifier;
+        public string identifier;
         public AudioClip clip;
 
         [Range(0f, 1f)] public float volume = 1f;
