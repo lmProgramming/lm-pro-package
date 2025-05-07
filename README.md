@@ -22,7 +22,7 @@ https://github.com/lmProgramming/lm-pro-package.git
 ## Features
 
 - EasyPool - simple pool implementation
-- Graph - basic graphs
+- Graph - basic graphs (as in data structure)
 - simple SoundManager
 - DefaultDictionary like in Python
 - image orientation helpers
