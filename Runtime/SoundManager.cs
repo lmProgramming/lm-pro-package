@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using LM.EasyPool;
 using UnityEngine;
 
@@ -9,38 +10,41 @@ namespace LM
     {
         public Sound[] sounds;
 
-        [Header("Pooling Settings")]
-        private GameObject audioSourcePrefab;
-
         [SerializeField] private Transform audioSourceParent;
 
         [SerializeField] private Instantiator unityInstantiator;
 
         [SerializeField] private int maxPoolSize = 50;
 
+        [SerializeField] private bool disallowDestroyOnLoad = true;
+
         private EasyPool<AudioSource> _audioSourcePool;
+
+        [Header("Pooling Settings")]
+        private GameObject _audioSourcePrefab;
+
         private float _effectsVolume = 1f;
 
         private float _masterVolume = 1f;
         private float _musicVolume = 1f;
 
         private Dictionary<string, Sound> _soundsDictionary;
-        
+
         private void Awake()
         {
-            // Consider singleton pattern alternatives or DI if needed across scenes
-            // DontDestroyOnLoad(gameObject);
-            
-            audioSourcePrefab = Resources.Load<GameObject>("AudioSource");
+            if (disallowDestroyOnLoad)
+                DontDestroyOnLoad(gameObject);
 
-            if (audioSourcePrefab == null)
+            _audioSourcePrefab = Resources.Load<GameObject>("AudioSource");
+
+            if (!_audioSourcePrefab)
             {
                 Debug.LogError("SoundManager: AudioSource Prefab is not assigned!", this);
                 enabled = false;
                 return;
             }
 
-            if (unityInstantiator == null)
+            if (!unityInstantiator)
             {
                 Debug.LogError("SoundManager: Unity Instantiator is not assigned!", this);
                 enabled = false;
@@ -52,7 +56,7 @@ namespace LM
             try
             {
                 _audioSourcePool = new EasyPool<AudioSource>(
-                    audioSourcePrefab,
+                    _audioSourcePrefab,
                     audioSourceParent,
                     unityInstantiator,
                     EasyPool<AudioSource>.PoolType.Stack,
@@ -69,7 +73,7 @@ namespace LM
 
             foreach (var sound in sounds)
             {
-                if (sound.clip == null)
+                if (!sound.clip)
                 {
                     Debug.LogWarning($"Sound '{sound.identifier}' has no AudioClip assigned. Skipping.");
                     continue;
@@ -88,23 +92,12 @@ namespace LM
             }
 
             Debug.Log(
-                $"SoundManager initialized with {_soundsDictionary.Count} sounds and pool for '{audioSourcePrefab.name}'.");
+                $"SoundManager initialized with {_soundsDictionary.Count} sounds and pool for '{_audioSourcePrefab.name}'.");
         }
-
-
-        private void Start()
-        {
-            _masterVolume = PlayerPrefs.GetFloat("masterVolume", 1f);
-            _musicVolume = PlayerPrefs.GetFloat("musicVolume", 1f);
-            _effectsVolume = PlayerPrefs.GetFloat("effectVolume", 1f);
-
-            ApplyAllVolumes();
-        }
-
 
         #region Playback Methods
 
-        public void Play(string identifier, Vector3? position = null)
+        public async UniTaskVoid Play(string identifier, Vector3? position = null)
         {
             if (!_soundsDictionary.TryGetValue(identifier, out var sound))
             {
@@ -113,12 +106,12 @@ namespace LM
             }
 
             if (!sound.allowOverlap)
-                PlayDedicatedSource(sound, position);
+                await PlayDedicatedSource(sound, position);
             else
-                PlayPooledSource(sound, position);
+                await PlayPooledSource(sound, position);
         }
 
-        private void PlayDedicatedSource(Sound sound, Vector3? position)
+        private async UniTask PlayDedicatedSource(Sound sound, Vector3? position)
         {
             if (!sound.dedicatedSource)
             {
@@ -130,9 +123,11 @@ namespace LM
 
             ConfigureAudioSource(sound.dedicatedSource, sound, position);
             sound.dedicatedSource.Play();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(sound.dedicatedSource.Duration()));
         }
 
-        private void PlayPooledSource(Sound sound, Vector3? position)
+        private async UniTask PlayPooledSource(Sound sound, Vector3? position)
         {
             AudioSource audioSource;
             try
@@ -156,6 +151,8 @@ namespace LM
             if (audioSource.GetComponent<IReturnToPool<AudioSource>>() is { } returner) returner.OnConfigured();
 
             audioSource.Play();
+
+            await UniTask.Delay(TimeSpan.FromSeconds(audioSource.Duration()));
         }
 
         private void ConfigureAudioSource(AudioSource source, Sound sound, Vector3? position)
@@ -241,28 +238,25 @@ namespace LM
         private void ApplyAllVolumes()
         {
             foreach (var sound in _soundsDictionary.Values)
-                if (!sound.allowOverlap && sound.dedicatedSource != null)
+                if (!sound.allowOverlap && sound.dedicatedSource)
                     sound.dedicatedSource.volume = CalculateActualVolume(sound);
         }
 
         public void SetMasterVolume(float volume)
         {
             _masterVolume = Mathf.Clamp01(volume);
-            PlayerPrefs.SetFloat("masterVolume", _masterVolume);
             ApplyAllVolumes();
         }
 
         public void SetMusicVolume(float volume)
         {
             _musicVolume = Mathf.Clamp01(volume);
-            PlayerPrefs.SetFloat("musicVolume", _musicVolume);
             ApplyAllVolumes();
         }
 
         public void SetEffectsVolume(float volume)
         {
             _effectsVolume = Mathf.Clamp01(volume);
-            PlayerPrefs.SetFloat("effectVolume", _effectsVolume);
             ApplyAllVolumes();
         }
 
