@@ -158,7 +158,7 @@ namespace LM
             }
         }
 
-        private static Vector2 GetWorldPointerPosition(int pointerNumber = 0)
+        public static Vector2 GetWorldPointerPosition(int pointerNumber = 0)
         {
             var pointerPos = Vector2.zero;
             if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
