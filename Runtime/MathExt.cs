@@ -135,9 +135,15 @@ namespace LM
         // angle between -90 and 90 symmetrical
         public static float AngleSym180(float angle)
         {
-            if (angle > 90)
-                angle -= (angle - 90) * 2;
-            else if (angle < -90) angle += (angle + 90) * 2;
+            switch (angle)
+            {
+                case > 90:
+                    angle -= (angle - 90) * 2;
+                    break;
+                case < -90:
+                    angle += (angle + 90) * 2;
+                    break;
+            }
 
             return angle;
         }
@@ -163,6 +169,32 @@ namespace LM
                 var k = Random.Range(0, n + 1);
                 (list[n], list[k]) = (list[k], list[n]);
             }
+        }
+
+        public static Vector2[] GetTriangleApexes(float sideLength)
+        {
+            // Calculate the height of the equilateral triangle
+            var halfSideLength = sideLength / 2;
+            var triangleHeight = halfSideLength * Mathf.Sqrt(3);
+
+            // Calculate the coordinates of the triangle's center
+            var triangleCenter = new Vector2(0, triangleHeight / 2);
+            var triangleBias = new Vector2(0, triangleHeight / 3) - triangleCenter;
+
+            // Calculate the coordinates of the triangle's vertices based on the center
+            var vertexA = triangleBias + new Vector2(0, 2 * triangleHeight / 3);
+            var vertexB = triangleBias + new Vector2(-sideLength / 2, -triangleHeight / 3);
+            var vertexC = triangleBias + new Vector2(sideLength / 2, -triangleHeight / 3);
+
+            // Create an array to store the vertices
+            Vector2[] vertices = { vertexA, vertexB, vertexC };
+
+            return vertices;
+        }
+        
+        public static int RandomInclusive(int x, int y)
+        {
+            return Random.Range(x, y + 1);
         }
     }
 }
