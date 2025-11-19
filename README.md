@@ -59,6 +59,10 @@ This package relies on the following external libraries, which will be automatic
 Feel free to contribute with issues and pull requets :)  
 I will be happy if anyone gets to use this besides me
 
+## Development
+
+Always bump the version in `package.json` when making changes.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details. The MIT License is a permissive, open-source license that grants users the freedom to use, modify, and distribute software, even for commercial purposes, with minimal restrictions.
